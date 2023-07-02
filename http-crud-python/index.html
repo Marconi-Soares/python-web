@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <form method="post" id="form">
+            <input type="text" name="title" placeholder="task title">
+            <input type="submit" name="submit" value="New">
+        </form>
+
+        <div id="root"></div>
+
+    </body>
+    <script>
+    const root = document.querySelector("#root")
+    const form = document.querySelector("#form")
+    form.addEventListener("submit", (e) => handle_new_task(e))
+
+    class Task {
+        constructor(is_complete, id, title) {
+            this.id = id
+            this.title = title
+            this.is_complete = is_complete
+            this.task_html_node
+        }
+
+        get task_html_node() {
+            const task_container = document.createElement("div")
+            task_container.id = `task-${this.id}`
+            
+            const title_p = document.createElement("p")
+            title_p.innerText = this.title
+
+            task_container.appendChild(title_p)
+            return task_container
+        }
+    }
+
+    async function show_tasks() {
+        const data = await fetch('http://localhost:8000/tasks')
+        const tasks = await data.json()
+        
+        tasks.forEach(task => {
+            const task_html_node = new Task(task.is_complete, task.id, task.title).task_html_node
+            root.appendChild(task_html_node)
+        })
+    }
+
+    async function handle_new_task(event) {
+        event.preventDefault()
+        const title = event.target.title.value
+        console.log({'title': title})
+        await fetch('http://localhost:8000/tasks', {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({'title': title})
+        })
+        event.target.title.value = ''
+    }
+    
+    show_tasks()
+    </script>
+</html>
